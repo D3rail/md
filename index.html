@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TuneDrop — Download Music</title>
+  <meta name="description" content="A clean, modern page for previewing and downloading music you have rights to share." />
+  <style>
+    :root{
+      --bg:#0f1221;--card:#171a2e;--accent:#7c9cff;--muted:#a9b0c6;--text:#e8ebff;--good:#19c37d;
+      --danger:#ff6b6b;--ring:rgba(124,156,255,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      background: radial-gradient(1200px 600px at 80% -10%, rgba(124,156,255,.12), transparent 60%),
+                  radial-gradient(900px 500px at -10% -10%, rgba(25,195,125,.10), transparent 60%),
+                  var(--bg);
+      color:var(--text);
+      line-height:1.5;
+    }
+    a{color:inherit}
+    .container{max-width:1100px;margin:0 auto;padding:24px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#5eead4);
+      display:grid;place-items:center;box-shadow:0 10px 30px rgba(124,156,255,.35)}
+    .logo svg{filter:drop-shadow(0 2px 8px rgba(0,0,0,.35))}
+    h1{margin:0;font-size: clamp(18px, 3.4vw, 28px);letter-spacing:.2px}
+    .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(124,156,255,.12);color:var(--accent);border:1px solid rgba(124,156,255,.25)}
+
+    .toolbar{display:grid;grid-template-columns: 1fr 140px 150px;gap:10px;margin:16px 0 8px}
+    .input, select{
+      background:var(--card);border:1px solid rgba(255,255,255,.08);color:var(--text);
+      padding:10px 12px;border-radius:12px;outline:none;box-shadow:0 0 0 0 var(--ring);
+    }
+    .input:focus, select:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--ring)}
+
+    .grid{display:grid;grid-template-columns: repeat( auto-fill, minmax(240px, 1fr) );gap:14px;margin-top:12px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00));
+      border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;position:relative}
+    .art{position:relative;aspect-ratio:1/1;background:#0b0e1a}
+    .art img{width:100%;height:100%;object-fit:cover;display:block}
+    .meta{padding:12px 12px 10px}
+    .title{font-weight:700;font-size:16px;margin:0 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .muted{color:var(--muted);font-size:13px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
+    .btn{
+      display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
+      background:rgba(124,156,255,.10);color:var(--text);text-decoration:none;font-weight:600;
+      transition:.2s transform ease, .2s background ease, .2s border-color ease;
+    }
+    .btn:hover{transform:translateY(-1px);background:rgba(124,156,255,.18);border-color:rgba(124,156,255,.35)}
+    .btn:active{transform:translateY(0)}
+    .pill{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03)}
+
+    .player{
+      position:absolute;inset:auto 8px 8px auto;z-index:5;display:flex;gap:8px;align-items:center
+    }
+    .iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.35);backdrop-filter: blur(6px);display:grid;place-items:center;cursor:pointer}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+
+    footer{margin:28px 0 8px;color:var(--muted);font-size:13px}
+    .notice{display:flex;gap:8px;align-items:flex-start;background:rgba(255,255,255,.03);padding:12px;border:1px dashed rgba(255,255,255,.14);border-radius:12px}
+    .notice strong{color:#fff}
+
+    @media (max-width:720px){
+      .toolbar{grid-template-columns: 1fr 120px 120px}
+      .player{inset:auto 6px 6px auto}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M6 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z" fill="currentColor" opacity=".45"/>
+            <path d="M10 16V5.6c0-1.1.9-2 2-2h.5c.6 0 1 .4 1 1v7.2c0 .5.4.9.9.9h1.6c1.1 0 2 .9 2 2V16c0 2.2-1.8 4-4 4h-2a4 4 0 0 1-4-4Z" fill="#0b122b"/>
+          </svg>
+        </div>
+        <div>
+          <h1>TuneDrop</h1>
+          <div class="muted">Preview and download tracks (rights-respecting only).</div>
+        </div>
+      </div>
+      <span class="badge">v1.0</span>
+    </header>
+
+    <div class="toolbar" role="search">
+      <input id="search" class="input" type="search" placeholder="Search by title, artist or album…" autocomplete="off" />
+      <select id="genreFilter" aria-label="Filter by genre">
+        <option value="">All genres</option>
+        <option>Afrobeats</option>
+        <option>Hip-Hop</option>
+        <option>House</option>
+        <option>Gospel</option>
+        <option>R&B</option>
+        <option>Amapiano</option>
+        <option>Instrumental</option>
+      </select>
+      <select id="sortBy" aria-label="Sort">
+        <option value="title">Sort: Title (A→Z)</option>
+        <option value="artist">Sort: Artist (A→Z)</option>
+        <option value="date">Sort: Newest</option>
+        <option value="duration">Sort: Duration</option>
+      </select>
+    </div>
+
+    <div id="grid" class="grid" aria-live="polite"></div>
+
+    <footer>
+      <div class="notice" role="note" aria-label="Rights notice">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="margin-top:2px"><circle cx="12" cy="12" r="10" stroke="currentColor" opacity=".35"/><path d="M12 7v6" stroke="currentColor"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
+        <div>
+          <strong>Only share content you own or have permission to distribute.</strong>
+          Replace the placeholder file paths with your own audio files. The download links use the HTML <code>download</code> attribute for direct saves.
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <template id="cardTemplate">
+    <article class="card" data-track>
+      <div class="art">
+        <img data-art alt="Album art" loading="lazy" />
+        <div class="player">
+          <button class="iconbtn" data-play aria-label="Play preview">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7-11-7z"/></svg>
+            <span class="sr-only">Play</span>
+          </button>
+          <button class="iconbtn" data-pause aria-label="Pause" hidden>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+            <span class="sr-only">Pause</span>
+          </button>
+        </div>
+        <audio preload="none" data-audio></audio>
+      </div>
+      <div class="meta">
+        <h3 class="title" data-title></h3>
+        <div class="muted" data-artist></div>
+        <div class="row">
+          <span class="pill" data-genre></span>
+          <span class="muted" data-extra></span>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <a class="btn" data-download>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 20h14v-2H5v2zm7-18l-5.5 6h3.5v6h4V8h3.5L12 2z"/></svg>
+            <span>Download</span>
+          </a>
+          <span class="muted" data-size title="File size" aria-label="File size"></span>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script>
+    // 👉 Replace these with your real files and covers
+    // Put audio files under /music and artworks under /covers (or use full URLs)
+    const TRACKS = [
+      {
+        id:"td001",
+        title:"kabachikulile",
+        artist:"juicy mix & zm",
+        album:"kabachikulile",
+        genre:"afro",
+        duration: 219,
+        date:"2025-07-02",
+        src:"music/kabachikulile.mp3",
+        art:"covers/kabachikulile.jpeg"
+      },
+      {
+        id:"td002",
+        title:"Midnight Code",
+        artist:"Byte Society",
+        album:"Compile & Chill",
+        genre:"House",
+        duration: 198,
+        date:"2025-06-18",
+        src:"music/midnight-code.mp3",
+        art:"covers/midnight-code.jpg"
+      },
+      {
+        id:"td003",
+        title:"Zambezi Skies",
+        artist:"Deraka",
+        album:"Lusaka Nights",
+        genre:"Afrobeats",
+        duration: 242,
+        date:"2025-08-01",
+        src:"music/zambezi-skies.mp3",
+        art:"covers/zambezi-skies.jpg"
+      },
+      {
+        id:"td004",
+        title:"Quiet Roads",
+        artist:"Moyo Band",
+        album:"Sunday Service",
+        genre:"Gospel",
+        duration: 260,
+        date:"2025-05-05",
+        src:"music/quiet-roads.mp3",
+        art:"covers/quiet-roads.jpg"
+      },
+      {
+        id:"td005",
+        title:"Late Texts",
+        artist:"Blue Light",
+        album:"2AM",
+        genre:"R&B",
+        duration: 205,
+        date:"2025-08-10",
+        src:"music/late-texts.mp3",
+        art:"covers/late-texts.jpg"
+      }
+    ];
+
+    const grid = document.getElementById('grid');
+    const tpl = document.getElementById('cardTemplate');
+    const search = document.getElementById('search');
+    const genreFilter = document.getElementById('genreFilter');
+    const sortBy = document.getElementById('sortBy');
+
+    const fallbackArt = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7c9cff"/><stop offset="100%" stop-color="#5eead4"/></linearGradient></defs>
+        <rect width="100%" height="100%" fill="#0b0e1a"/>
+        <circle cx="180" cy="140" r="60" fill="url(#g)" opacity="0.3"/>
+        <rect x="120" y="190" width="120" height="90" rx="10" fill="#1b2040"/>
+        <rect x="140" y="205" width="25" height="60" fill="#7c9cff"/>
+        <rect x="195" y="205" width="25" height="60" fill="#7c9cff"/>
+      </svg>
+    `);
+
+    function secondsToTime(secs){
+      const m = Math.floor(secs/60).toString().padStart(1,'0');
+      const s = Math.floor(secs%60).toString().padStart(2,'0');
+      return `${m}:${s}`;
+    }
+
+    function render(list){
+      grid.innerHTML = '';
+      list.forEach(track => {
+        const node = tpl.content.firstElementChild.cloneNode(true);
+        const img = node.querySelector('[data-art]');
+        img.src = track.art || fallbackArt;
+        img.onerror = () => img.src = fallbackArt;
+
+        node.querySelector('[data-title]').textContent = track.title;
+        node.querySelector('[data-artist]').textContent = `${track.artist} • ${track.album}`;
+        node.querySelector('[data-genre]').textContent = track.genre;
+        node.querySelector('[data-extra]').textContent = `${secondsToTime(track.duration)} • ${new Date(track.date).toLocaleDateString()}`;
+
+        const audio = node.querySelector('[data-audio]');
+        audio.src = track.src;
+        audio.setAttribute('aria-label', `Preview ${track.title} by ${track.artist}`);
+
+        const playBtn = node.querySelector('[data-play]');
+        const pauseBtn = node.querySelector('[data-pause]');
+        playBtn.addEventListener('click', () => {audio.play(); playBtn.hidden = true; pauseBtn.hidden = false;});
+        pauseBtn.addEventListener('click', () => {audio.pause(); playBtn.hidden = false; pauseBtn.hidden = true;});
+        audio.addEventListener('ended', () => {playBtn.hidden = false; pauseBtn.hidden = true;});
+
+        const dl = node.querySelector('[data-download]');
+        dl.href = track.src; dl.download = `${track.artist} - ${track.title}.mp3`;
+        dl.setAttribute('aria-label', `Download ${track.title} by ${track.artist}`);
+
+        const sizeEl = node.querySelector('[data-size]');
+        // Try to fetch Content-Length for file size (may be blocked cross-origin)
+        headSize(track.src).then(sz => { if(sz) sizeEl.textContent = sz; }).catch(()=>{});
+
+        grid.appendChild(node);
+      });
+    }
+
+    async function headSize(url){
+      try{
+        const res = await fetch(url, { method:'HEAD' });
+        const len = res.headers.get('Content-Length');
+        if(!len) return '';
+        const kb = Number(len)/1024, mb = kb/1024;
+        return mb >= 1 ? `${mb.toFixed(2)} MB` : `${kb.toFixed(0)} KB`;
+      }catch(e){ return ''; }
+    }
+
+    function apply(){
+      const q = search.value.trim().toLowerCase();
+      const g = genreFilter.value;
+      const sort = sortBy.value;
+      let list = TRACKS.filter(t => (
+        (!g || t.genre === g) &&
+        (!q || `${t.title} ${t.artist} ${t.album}`.toLowerCase().includes(q))
+      ));
+      list.sort((a,b)=>{
+        if(sort==='title') return a.title.localeCompare(b.title);
+        if(sort==='artist') return a.artist.localeCompare(b.artist);
+        if(sort==='duration') return a.duration - b.duration;
+        if(sort==='date') return new Date(b.date) - new Date(a.date);
+        return 0;
+      });
+      render(list);
+    }
+
+    search.addEventListener('input', apply);
+    genreFilter.addEventListener('change', apply);
+    sortBy.addEventListener('change', apply);
+
+    // Initial render
+    apply();
+  </script>
+</body>
+</html>
